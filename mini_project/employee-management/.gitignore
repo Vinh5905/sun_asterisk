@@ -1,0 +1,9 @@
+target/
+.idea/
+.metals/
+.vscode/
+*.iml
+.classpath
+.project
+.settings/
+.DS_Store
