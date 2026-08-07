@@ -1,56 +1,85 @@
 package com.sunasterisk.employeemanagement.service;
 
 import com.sunasterisk.employeemanagement.dto.EmployeeRequest;
+import com.sunasterisk.employeemanagement.model.Department;
 import com.sunasterisk.employeemanagement.model.Employee;
-import jakarta.annotation.PostConstruct;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
+import com.sunasterisk.employeemanagement.repository.DepartmentRepository;
+import com.sunasterisk.employeemanagement.repository.EmployeeRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class EmployeeService {
 
-    private final List<Employee> employees = new ArrayList<>();
-    private final AtomicLong idGenerator = new AtomicLong(0);
+    private final EmployeeRepository employeeRepository;
+    private final DepartmentRepository departmentRepository;
     private final UtilityService utilityService;
 
-    public EmployeeService(UtilityService utilityService) {
+    public EmployeeService(
+        EmployeeRepository employeeRepository,
+        DepartmentRepository departmentRepository,
+        UtilityService utilityService
+    ) {
+        this.employeeRepository = employeeRepository;
+        this.departmentRepository = departmentRepository;
         this.utilityService = utilityService;
     }
 
-    @PostConstruct
-    void initData() {
-        createEmployee(new EmployeeRequest(
-            "Pham Hoang Vinh",
-            "Engineering",
-            "Data Engineering",
-            "vinh.pham@gmail.com"
-        ));
-        createEmployee(new EmployeeRequest(
-            "Tran Thi Binh",
-            "Human Resources",
-            "HR Specialist",
-            "binh.tran@example.com"
-        ));
+    public List<Employee> getAllEmployees() {
+        return employeeRepository.findAll();
     }
 
-    public synchronized List<Employee> getAllEmployees() {
-        return List.copyOf(employees);
+    public Employee getEmployeeById(Long id) {
+        return employeeRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Employee not found"
+            ));
     }
 
-    public synchronized Employee createEmployee(EmployeeRequest request) {
-        long id = idGenerator.incrementAndGet();
+    public List<Employee> searchEmployees(String name, String department) {
+        return employeeRepository.search(emptyToNull(name), emptyToNull(department));
+    }
+
+    public Employee createEmployee(EmployeeRequest request) {
+        Department department = getDepartmentById(request.departmentId());
         Employee employee = new Employee(
-            id,
-            utilityService.generateEmployeeCode(id),
-            utilityService.formatName(request.fullName()),
-            utilityService.normalizeText(request.department()),
-            utilityService.normalizeText(request.position()),
-            utilityService.normalizeText(request.email())
+            utilityService.formatName(request.name()),
+            utilityService.normalizeText(request.email()),
+            department
         );
 
-        employees.add(employee);
-        return employee;
+        return employeeRepository.save(employee);
+    }
+
+    public Employee updateEmployee(Long id, EmployeeRequest request) {
+        Employee employee = getEmployeeById(id);
+        Department department = getDepartmentById(request.departmentId());
+
+        employee.setName(utilityService.formatName(request.name()));
+        employee.setEmail(utilityService.normalizeText(request.email()));
+        employee.setDepartment(department);
+
+        return employeeRepository.save(employee);
+    }
+
+    public void deleteEmployee(Long id) {
+        Employee employee = getEmployeeById(id);
+        employeeRepository.delete(employee);
+    }
+
+    private Department getDepartmentById(Long departmentId) {
+        return departmentRepository.findById(departmentId)
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Department not found"
+            ));
+    }
+
+    private String emptyToNull(String value) {
+        String normalizedValue = utilityService.normalizeText(value);
+        return normalizedValue.isEmpty() ? null : normalizedValue;
     }
 }
