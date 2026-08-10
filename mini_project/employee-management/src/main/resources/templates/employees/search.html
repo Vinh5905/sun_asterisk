@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Employees</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<main class="page-shell">
+    <nav class="nav-bar">
+        <a th:href="@{/employees/list}">Employees</a>
+        <a th:href="@{/employees/add}">Add</a>
+        <a th:href="@{/employees/search}">Search</a>
+    </nav>
+
+    <section class="page-header">
+        <h1>Search Employees</h1>
+    </section>
+
+    <form class="search-panel" th:action="@{/employees/search}" method="get">
+        <label for="name">Name</label>
+        <input id="name" name="name" type="text" th:value="${name}">
+
+        <label for="department">Department</label>
+        <input id="department" name="department" type="text" th:value="${department}">
+
+        <button class="button" type="submit">Search</button>
+    </form>
+
+    <section class="table-panel">
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Department</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="employee : ${employees}">
+                <td th:text="${employee.id}">1</td>
+                <td th:text="${employee.name}">Employee name</td>
+                <td th:text="${employee.email}">email@example.com</td>
+                <td th:text="${employee.department.name}">Department</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(employees)}">
+                <td colspan="4" class="empty-state">No employees found</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

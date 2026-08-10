@@ -1,0 +1,150 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #f5f7fa;
+    color: #1f2937;
+    font-family: Arial, sans-serif;
+}
+
+.page-shell {
+    width: min(1040px, calc(100% - 32px));
+    margin: 32px auto;
+}
+
+.nav-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.nav-bar a,
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0 14px;
+    border: 1px solid #2563eb;
+    border-radius: 6px;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.button.secondary {
+    border-color: #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+h1 {
+    margin: 0;
+    font-size: 28px;
+}
+
+.table-panel,
+.form-panel,
+.search-panel {
+    width: 100%;
+    border: 1px solid #dbe3ee;
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+.table-panel {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #e5eaf2;
+    text-align: left;
+}
+
+th {
+    background: #f8fafc;
+    color: #475569;
+    font-size: 13px;
+    text-transform: uppercase;
+}
+
+.empty-state {
+    color: #64748b;
+    text-align: center;
+}
+
+.form-panel,
+.search-panel {
+    display: grid;
+    gap: 10px;
+    padding: 20px;
+}
+
+.search-panel {
+    grid-template-columns: 90px 1fr 110px 1fr auto;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+label {
+    color: #475569;
+    font-weight: 600;
+}
+
+input,
+select {
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #111827;
+    font: inherit;
+}
+
+.field-error {
+    margin: -4px 0 6px;
+    color: #b91c1c;
+    font-size: 13px;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+@media (max-width: 720px) {
+    .page-header,
+    .nav-bar,
+    .form-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .search-panel {
+        grid-template-columns: 1fr;
+    }
+}

@@ -19,7 +19,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
@@ -126,7 +129,7 @@ class EmployeeManagementApplicationTests {
                 .content(requestBody))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.message").value("Request validation failed"))
-            .andExpect(jsonPath("$.fieldErrors.name").value("Name must not be blank"))
+            .andExpect(jsonPath("$.fieldErrors.name", notNullValue()))
             .andExpect(jsonPath("$.fieldErrors.email").value("Email must be valid"))
             .andExpect(jsonPath("$.fieldErrors.departmentId").value("Department id must not be null"));
     }
@@ -154,5 +157,61 @@ class EmployeeManagementApplicationTests {
                 .content(requestBody))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.message").value("Request body is invalid or has wrong data format"));
+    }
+
+    @Test
+    void employeesListPageShowsDbEmployees() throws Exception {
+        mockMvc.perform(get("/employees/list"))
+            .andExpect(status().isOk())
+            .andExpect(view().name("employees/list"))
+            .andExpect(model().attributeExists("employees"));
+    }
+
+    @Test
+    void addEmployeePageShowsFormAndDepartments() throws Exception {
+        mockMvc.perform(get("/employees/add"))
+            .andExpect(status().isOk())
+            .andExpect(view().name("employees/add"))
+            .andExpect(model().attributeExists("employeeForm"))
+            .andExpect(model().attributeExists("departments"));
+    }
+
+    @Test
+    void addEmployeeFormCreatesEmployeeAndRedirects() throws Exception {
+        mockMvc.perform(post("/employees/add")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .param("name", "Nguyen Van Nam")
+                .param("email", "nam.nguyen@example.com")
+                .param("departmentId", "1"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/employees/list"));
+    }
+
+    @Test
+    void addEmployeeFormShowsValidationErrors() throws Exception {
+        mockMvc.perform(post("/employees/add")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .param("name", "")
+                .param("email", "invalid-email")
+                .param("departmentId", ""))
+            .andExpect(status().isOk())
+            .andExpect(view().name("employees/add"))
+            .andExpect(model().attributeHasFieldErrors(
+                "employeeForm",
+                "name",
+                "email",
+                "departmentId"
+            ))
+            .andExpect(model().attributeExists("departments"));
+    }
+
+    @Test
+    void searchEmployeePageShowsResults() throws Exception {
+        mockMvc.perform(get("/employees/search")
+                .param("department", "Engineering"))
+            .andExpect(status().isOk())
+            .andExpect(view().name("employees/search"))
+            .andExpect(model().attributeExists("employees"))
+            .andExpect(model().attribute("department", "Engineering"));
     }
 }

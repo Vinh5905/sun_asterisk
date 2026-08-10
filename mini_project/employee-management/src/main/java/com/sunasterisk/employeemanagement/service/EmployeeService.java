@@ -30,6 +30,10 @@ public class EmployeeService {
         return employeeRepository.findAll();
     }
 
+    public List<Department> getAllDepartments() {
+        return departmentRepository.findAll();
+    }
+
     public Employee getEmployeeById(Long id) {
         return employeeRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + id));
