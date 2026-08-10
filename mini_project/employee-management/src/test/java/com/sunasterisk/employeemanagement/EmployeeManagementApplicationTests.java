@@ -107,6 +107,52 @@ class EmployeeManagementApplicationTests {
             .andExpect(status().isNoContent());
 
         mockMvc.perform(get("/api/employees/2"))
-            .andExpect(status().isNotFound());
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.message").value("Employee not found with id: 2"));
+    }
+
+    @Test
+    void createEmployeeReturnsValidationErrors() throws Exception {
+        String requestBody = """
+            {
+              "name": "",
+              "email": "invalid-email",
+              "departmentId": null
+            }
+            """;
+
+        mockMvc.perform(post("/api/employees")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("Request validation failed"))
+            .andExpect(jsonPath("$.fieldErrors.name").value("Name must not be blank"))
+            .andExpect(jsonPath("$.fieldErrors.email").value("Email must be valid"))
+            .andExpect(jsonPath("$.fieldErrors.departmentId").value("Department id must not be null"));
+    }
+
+    @Test
+    void getEmployeeReturnsNotFoundMessage() throws Exception {
+        mockMvc.perform(get("/api/employees/999"))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.status").value(404))
+            .andExpect(jsonPath("$.message").value("Employee not found with id: 999"));
+    }
+
+    @Test
+    void createEmployeeReturnsClearMessageForWrongDataFormat() throws Exception {
+        String requestBody = """
+            {
+              "name": "Le Van Cuong",
+              "email": "cuong.le@example.com",
+              "departmentId": "abc"
+            }
+            """;
+
+        mockMvc.perform(post("/api/employees")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("Request body is invalid or has wrong data format"));
     }
 }

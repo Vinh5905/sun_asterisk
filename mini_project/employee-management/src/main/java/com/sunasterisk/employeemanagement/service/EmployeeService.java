@@ -1,14 +1,13 @@
 package com.sunasterisk.employeemanagement.service;
 
 import com.sunasterisk.employeemanagement.dto.EmployeeRequest;
+import com.sunasterisk.employeemanagement.exception.ResourceNotFoundException;
 import com.sunasterisk.employeemanagement.model.Department;
 import com.sunasterisk.employeemanagement.model.Employee;
 import java.util.List;
 import com.sunasterisk.employeemanagement.repository.DepartmentRepository;
 import com.sunasterisk.employeemanagement.repository.EmployeeRepository;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class EmployeeService {
@@ -33,10 +32,7 @@ public class EmployeeService {
 
     public Employee getEmployeeById(Long id) {
         return employeeRepository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "Employee not found"
-            ));
+            .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + id));
     }
 
     public List<Employee> searchEmployees(String name, String department) {
@@ -72,9 +68,8 @@ public class EmployeeService {
 
     private Department getDepartmentById(Long departmentId) {
         return departmentRepository.findById(departmentId)
-            .orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "Department not found"
+            .orElseThrow(() -> new ResourceNotFoundException(
+                "Department not found with id: " + departmentId
             ));
     }
 

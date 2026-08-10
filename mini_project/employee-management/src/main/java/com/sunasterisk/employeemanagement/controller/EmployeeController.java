@@ -1,11 +1,16 @@
 package com.sunasterisk.employeemanagement.controller;
 
 import com.sunasterisk.employeemanagement.dto.EmployeeRequest;
+import com.sunasterisk.employeemanagement.exception.BadRequestException;
 import com.sunasterisk.employeemanagement.model.Employee;
 import com.sunasterisk.employeemanagement.service.EmployeeService;
+import jakarta.validation.Valid;
 import java.net.URI;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,7 +50,11 @@ public class EmployeeController {
     }
 
     @PostMapping
-    public ResponseEntity<Employee> createEmployee(@RequestBody EmployeeRequest request) {
+    public ResponseEntity<Employee> createEmployee(
+        @Valid @RequestBody EmployeeRequest request,
+        BindingResult bindingResult
+    ) {
+        validateRequest(bindingResult);
         Employee employee = employeeService.createEmployee(request);
         return ResponseEntity
             .created(URI.create("/api/employees/" + employee.getId()))
@@ -55,8 +64,10 @@ public class EmployeeController {
     @PutMapping("/{id}")
     public Employee updateEmployee(
         @PathVariable Long id,
-        @RequestBody EmployeeRequest request
+        @Valid @RequestBody EmployeeRequest request,
+        BindingResult bindingResult
     ) {
+        validateRequest(bindingResult);
         return employeeService.updateEmployee(id, request);
     }
 
@@ -64,5 +75,18 @@ public class EmployeeController {
     public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
         employeeService.deleteEmployee(id);
         return ResponseEntity.noContent().build();
+    }
+
+    private void validateRequest(BindingResult bindingResult) {
+        if (!bindingResult.hasErrors()) {
+            return;
+        }
+
+        Map<String, String> fieldErrors = new LinkedHashMap<>();
+        bindingResult.getFieldErrors().forEach(error ->
+            fieldErrors.putIfAbsent(error.getField(), error.getDefaultMessage())
+        );
+
+        throw new BadRequestException("Request validation failed", fieldErrors);
     }
 }
