@@ -214,4 +214,22 @@ class EmployeeManagementApplicationTests {
             .andExpect(model().attributeExists("employees"))
             .andExpect(model().attribute("department", "Engineering"));
     }
+
+    @Test
+    void employeeTotalReportReturnsCachedCount() throws Exception {
+        mockMvc.perform(get("/api/reports/employees/total"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalEmployees", greaterThanOrEqualTo(2)));
+    }
+
+    @Test
+    void actuatorEndpointsAreAvailable() throws Exception {
+        mockMvc.perform(get("/actuator/health"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value("UP"));
+
+        mockMvc.perform(get("/actuator/metrics"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.names", notNullValue()));
+    }
 }
