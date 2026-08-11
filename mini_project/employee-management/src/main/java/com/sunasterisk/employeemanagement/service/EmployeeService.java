@@ -7,10 +7,14 @@ import com.sunasterisk.employeemanagement.model.Employee;
 import java.util.List;
 import com.sunasterisk.employeemanagement.repository.DepartmentRepository;
 import com.sunasterisk.employeemanagement.repository.EmployeeRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public class EmployeeService {
+
+    private static final Logger logger = LoggerFactory.getLogger(EmployeeService.class);
 
     private final EmployeeRepository employeeRepository;
     private final DepartmentRepository departmentRepository;
@@ -51,7 +55,14 @@ public class EmployeeService {
             department
         );
 
-        return employeeRepository.save(employee);
+        Employee savedEmployee = employeeRepository.save(employee);
+        logger.info(
+            "Created employee id={}, email={}, departmentId={}",
+            savedEmployee.getId(),
+            savedEmployee.getEmail(),
+            savedEmployee.getDepartment().getId()
+        );
+        return savedEmployee;
     }
 
     public Employee updateEmployee(Long id, EmployeeRequest request) {
@@ -62,12 +73,20 @@ public class EmployeeService {
         employee.setEmail(utilityService.normalizeText(request.email()));
         employee.setDepartment(department);
 
-        return employeeRepository.save(employee);
+        Employee savedEmployee = employeeRepository.save(employee);
+        logger.info(
+            "Updated employee id={}, email={}, departmentId={}",
+            savedEmployee.getId(),
+            savedEmployee.getEmail(),
+            savedEmployee.getDepartment().getId()
+        );
+        return savedEmployee;
     }
 
     public void deleteEmployee(Long id) {
         Employee employee = getEmployeeById(id);
         employeeRepository.delete(employee);
+        logger.info("Deleted employee id={}, email={}", employee.getId(), employee.getEmail());
     }
 
     private Department getDepartmentById(Long departmentId) {
