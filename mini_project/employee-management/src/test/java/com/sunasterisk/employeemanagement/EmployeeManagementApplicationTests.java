@@ -1,5 +1,8 @@
 package com.sunasterisk.employeemanagement;
 
+import com.sunasterisk.employeemanagement.model.AppUser;
+import com.sunasterisk.employeemanagement.repository.AppUserRepository;
+import com.sunasterisk.employeemanagement.security.JwtService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -13,6 +16,7 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.startsWith;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -23,15 +27,24 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+import org.springframework.security.test.context.support.WithAnonymousUser;
+import org.springframework.security.test.context.support.WithMockUser;
 
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 @SpringBootTest
 @Transactional
+@WithMockUser(roles = "ADMIN")
 class EmployeeManagementApplicationTests {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private AppUserRepository appUserRepository;
+
+    @Autowired
+    private JwtService jwtService;
 
     @Test
     void contextLoads() {
@@ -231,5 +244,79 @@ class EmployeeManagementApplicationTests {
         mockMvc.perform(get("/actuator/metrics"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.names", notNullValue()));
+    }
+
+    @Test
+    @WithAnonymousUser
+    void loginReturnsJwtToken() throws Exception {
+        String requestBody = """
+            {
+              "username": "admin",
+              "password": "admin123"
+            }
+            """;
+
+        mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.username").value("admin"))
+            .andExpect(jsonPath("$.role").value("ADMIN"))
+            .andExpect(jsonPath("$.token", notNullValue()));
+    }
+
+    @Test
+    @WithAnonymousUser
+    void registerCreatesUserAccount() throws Exception {
+        String requestBody = """
+            {
+              "username": "newuser",
+              "password": "newpass123",
+              "role": "USER"
+            }
+            """;
+
+        mockMvc.perform(post("/api/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.username").value("newuser"))
+            .andExpect(jsonPath("$.role").value("USER"))
+            .andExpect(jsonPath("$.token", notNullValue()));
+    }
+
+    @Test
+    @WithAnonymousUser
+    void basicAuthenticationAllowsUserToViewEmployees() throws Exception {
+        mockMvc.perform(get("/api/employees").with(httpBasic("user", "user123")))
+            .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithAnonymousUser
+    void jwtAuthenticationAllowsUserToViewEmployees() throws Exception {
+        AppUser user = appUserRepository.findByUsername("user").orElseThrow();
+        String token = jwtService.generateToken(user);
+
+        mockMvc.perform(get("/api/employees")
+                .header("Authorization", "Bearer " + token))
+            .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void userCannotCreateEmployee() throws Exception {
+        String requestBody = """
+            {
+              "name": "Le Van Cuong",
+              "email": "cuong.forbidden@example.com",
+              "departmentId": 1
+            }
+            """;
+
+        mockMvc.perform(post("/api/employees")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(status().isForbidden());
     }
 }

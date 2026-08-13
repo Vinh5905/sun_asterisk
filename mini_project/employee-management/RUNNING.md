@@ -43,14 +43,39 @@ export $(grep -v '^#' .env.prod | xargs)
 
 ## Test APIs
 
-```bash
-curl http://localhost:8080/api/employees
+Seeded accounts:
+
+```text
+admin / admin123
+user  / user123
 ```
 
-Create employee:
+Login and get JWT:
+
+```bash
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin123"}'
+```
+
+Use Basic Authentication:
+
+```bash
+curl -u user:user123 http://localhost:8080/api/employees
+```
+
+Use JWT:
+
+```bash
+curl http://localhost:8080/api/employees \
+  -H "Authorization: Bearer <token>"
+```
+
+Create employee as ADMIN:
 
 ```bash
 curl -X POST http://localhost:8080/api/employees \
+  -u admin:admin123 \
   -H "Content-Type: application/json" \
   -d '{"name":"Le Van Cuong","email":"cuong.le@example.com","departmentId":1}'
 ```
