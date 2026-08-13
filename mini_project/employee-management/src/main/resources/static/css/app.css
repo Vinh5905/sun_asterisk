@@ -58,7 +58,8 @@ h1 {
 
 .table-panel,
 .form-panel,
-.search-panel {
+.search-panel,
+.summary-panel {
     width: 100%;
     border: 1px solid #dbe3ee;
     border-radius: 8px;
@@ -104,6 +105,24 @@ th {
     grid-template-columns: 90px 1fr 110px 1fr auto;
     align-items: center;
     margin-bottom: 18px;
+}
+
+.summary-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+    padding: 20px;
+}
+
+.summary-panel span {
+    color: #475569;
+    font-weight: 600;
+}
+
+.summary-panel strong {
+    font-size: 32px;
 }
 
 label {

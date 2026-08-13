@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Employees</title>
+    <title>Employee Statistics</title>
     <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
@@ -16,29 +16,29 @@
     </nav>
 
     <section class="page-header">
-        <h1>Employees</h1>
-        <a class="button" th:href="@{/employees/add}">Add employee</a>
+        <h1>Employee Statistics</h1>
+    </section>
+
+    <section class="summary-panel">
+        <span>Total employees</span>
+        <strong th:text="${totalEmployees}">0</strong>
     </section>
 
     <section class="table-panel">
         <table>
             <thead>
             <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Email</th>
                 <th>Department</th>
+                <th>Employees</th>
             </tr>
             </thead>
             <tbody>
-            <tr th:each="employee : ${employees}">
-                <td th:text="${employee.id}">1</td>
-                <td th:text="${employee.name}">Employee name</td>
-                <td th:text="${employee.email}">email@example.com</td>
-                <td th:text="${employee.department.name}">Department</td>
+            <tr th:each="item : ${employeesByDepartment}">
+                <td th:text="${item.departmentName}">Department</td>
+                <td th:text="${item.employeeCount}">0</td>
             </tr>
-            <tr th:if="${#lists.isEmpty(employees)}">
-                <td colspan="4" class="empty-state">No employees found</td>
+            <tr th:if="${#lists.isEmpty(employeesByDepartment)}">
+                <td colspan="2" class="empty-state">No statistics found</td>
             </tr>
             </tbody>
         </table>

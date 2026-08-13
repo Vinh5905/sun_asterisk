@@ -2,6 +2,7 @@ package com.sunasterisk.employeemanagement.controller;
 
 import com.sunasterisk.employeemanagement.dto.EmployeeForm;
 import com.sunasterisk.employeemanagement.service.EmployeeService;
+import com.sunasterisk.employeemanagement.service.ReportService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,9 +18,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class EmployeeWebController {
 
     private final EmployeeService employeeService;
+    private final ReportService reportService;
 
-    public EmployeeWebController(EmployeeService employeeService) {
+    public EmployeeWebController(EmployeeService employeeService, ReportService reportService) {
         this.employeeService = employeeService;
+        this.reportService = reportService;
     }
 
     @GetMapping("/list")
@@ -60,6 +63,13 @@ public class EmployeeWebController {
         model.addAttribute("department", department);
         model.addAttribute("employees", employeeService.searchEmployees(name, department));
         return "employees/search";
+    }
+
+    @GetMapping("/statistics")
+    public String showStatistics(Model model) {
+        model.addAttribute("totalEmployees", reportService.getTotalEmployees());
+        model.addAttribute("employeesByDepartment", reportService.getEmployeesByDepartment());
+        return "employees/statistics";
     }
 
     private void addDepartments(Model model) {

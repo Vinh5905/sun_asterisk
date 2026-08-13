@@ -229,10 +229,36 @@ class EmployeeManagementApplicationTests {
     }
 
     @Test
+    void employeesStatisticsPageShowsReports() throws Exception {
+        mockMvc.perform(get("/employees/statistics"))
+            .andExpect(status().isOk())
+            .andExpect(view().name("employees/statistics"))
+            .andExpect(model().attributeExists("totalEmployees"))
+            .andExpect(model().attributeExists("employeesByDepartment"));
+    }
+
+    @Test
     void employeeTotalReportReturnsCachedCount() throws Exception {
         mockMvc.perform(get("/api/reports/employees/total"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.totalEmployees", greaterThanOrEqualTo(2)));
+    }
+
+    @Test
+    void employeesByDepartmentReportReturnsStatistics() throws Exception {
+        mockMvc.perform(get("/api/reports/employees/by-department"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))))
+            .andExpect(jsonPath("$[0].departmentName", notNullValue()))
+            .andExpect(jsonPath("$[0].employeeCount", greaterThanOrEqualTo(1)));
+    }
+
+    @Test
+    void employeeStatisticsReportReturnsTotalAndDepartmentCounts() throws Exception {
+        mockMvc.perform(get("/api/reports/employees/statistics"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalEmployees", greaterThanOrEqualTo(2)))
+            .andExpect(jsonPath("$.employeesByDepartment", hasSize(greaterThanOrEqualTo(1))));
     }
 
     @Test
